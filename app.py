@@ -8,20 +8,20 @@ from langchain_core.output_parsers import StrOutputParser
 
 # 🔑 API 키 세팅
 # 기존의 이 코드를 통째로 지우세요!
-# os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 
 # 👇 대신 이 코드를 복사해서 넣으세요!
-with st.sidebar:
-    st.title("🔑 챗봇 시작하기")
-    st.caption("제미나이 API 키를 입력해야 챗봇이 깨어납니다.")
-    user_api_key = st.text_input("Gemini API Key", type="password")
-
-if not user_api_key:
-    st.warning("👈 왼쪽 사이드바에 API 키를 입력하시면 채팅창이 열립니다!")
-    st.stop() # 키를 넣기 전까지는 챗봇을 잠깐 멈춰둡니다.
-
+# with st.sidebar:
+#    st.title("🔑 챗봇 시작하기")
+#    st.caption("제미나이 API 키를 입력해야 챗봇이 깨어납니다.")
+#    user_api_key = st.text_input("Gemini API Key", type="password")
+#
+# if not user_api_key:
+#    st.warning("👈 왼쪽 사이드바에 API 키를 입력하시면 채팅창이 열립니다!")
+#    st.stop() # 키를 넣기 전까지는 챗봇을 잠깐 멈춰둡니다.
+#
 # 사용자가 화면에 입력한 키를 챗봇 뇌에 꽂아줍니다!
-os.environ["GOOGLE_API_KEY"] = user_api_key
+# os.environ["GOOGLE_API_KEY"] = user_api_key
 
 # 🎨 1. 웹페이지 기본 설정
 st.set_page_config(page_title="사내 규정 챗봇", page_icon="🤖")
