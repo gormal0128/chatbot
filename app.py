@@ -25,8 +25,8 @@ os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 
 # 🎨 1. 웹페이지 기본 설정
 st.set_page_config(page_title="사내 규정 챗봇", page_icon="🤖")
-st.title("🤖 사내 규정 & 지침 챗봇")
-st.caption("궁금한 회사 규정을 물어보세요! (예: 2026년 파견근무 비용 환수 기준은?)")
+st.title("사내 규정 & 지침 챗봇")
+st.caption("궁금한 회사 규정을 물어보세요!")
 
 # 🧠 2. 챗봇 뇌(DB) 불러오기 (한 번만 불러오고 캐시에 저장하여 속도 향상)
 @st.cache_resource
