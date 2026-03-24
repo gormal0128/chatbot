@@ -36,7 +36,6 @@ def load_chatbot():
     vector_db = Chroma(persist_directory="./chroma_db", embedding_function=embeddings)
     
 llm = ChatGoogleGenerativeAI(model="gemini-flash-latest", temperature=0)
-    
     retriever = vector_db.as_retriever(search_kwargs={"k": 3})
 
     prompt = PromptTemplate.from_template(
