@@ -35,8 +35,8 @@ def load_chatbot():
     # 이미 만들어둔 chroma_db 폴더를 즉시 불러옵니다! (기다림 없음)
     vector_db = Chroma(persist_directory="./chroma_db", embedding_function=embeddings)
     
-# llm = ChatGoogleGenerativeAI(model="gemini-flash-latest", temperature=0)
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0)
+llm = ChatGoogleGenerativeAI(model="gemini-flash-latest", temperature=0)
+    
     retriever = vector_db.as_retriever(search_kwargs={"k": 3})
 
     prompt = PromptTemplate.from_template(
