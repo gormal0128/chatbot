@@ -94,7 +94,7 @@ if prompt:
                 # 1. DB에서 관련 문서 찾아오기
                 docs = retriever.invoke(prompt)
                 
-                # 🛠️ [수정 포인트 3] 검색된 문서의 더러운 공백을 싹 청소합니다!
+                # 🧹 [공백 청소기 작동] 검색된 문서의 더러운 공백 압축
                 clean_docs_content = [clean_hwp_text(doc.page_content) for doc in docs]
                 context_text = "\n\n".join(clean_docs_content)
                 
@@ -105,6 +105,11 @@ if prompt:
                 final_prompt = prompt_template.format(history=history_text, context=context_text, question=prompt)
                 ai_message = llm.invoke(final_prompt)
                 
+                # ==========================================
+                # 🛡️ [철벽 방어] 모든 에러를 막아내는 최종 출력 로직
+                # ==========================================
+                
+                # (1) 리스트 에러 방어: Gemini 답변에서 순수 '텍스트'만 안전하게 추출
                 llm_text = ""
                 if isinstance(ai_message.content, list):
                     for item in ai_message.content:
@@ -115,18 +120,18 @@ if prompt:
                 else:
                     llm_text = str(ai_message.content) # 문자열이면 그대로 사용
                 
-                # 4. [고도화 4] 답변 출처 표기 (이제 llm_text는 100% 안전한 문자열입니다)
-                final_answer = llm_text
-                final_answer += "\n\n---\n**🔍 참고한 규정 원문**\n"
+                # (2) NameError 방어: 출처 텍스트(source_text) 깔끔하게 조립
+                source_text = "\n\n---\n**🔍 참고한 규정 원문**\n"
                 for text in clean_docs_content:
                     snippet = text[:150] 
                     source_text += f"> *...{snippet}...*\n\n"
-
-                # 조립된 출처는 스트리밍이 아닌 일반 마크다운으로 '한 번에' 화면에 덧붙입니다.
-                st.markdown(source_text)
                 
-                # 세션에 저장할 최종 기록은 둘을 합쳐서 저장합니다.
-                response = ai_message.content + source_text
+                # (3) 화면 출력: 추출한 LLM 답변과 조립한 출처를 합쳐서 렌더링
+                final_answer = llm_text + source_text
+                message_placeholder.markdown(final_answer)
+                
+                # (4) 채팅 기록 저장용 변수
+                response = final_answer
 
             except Exception as e:
                 # 🚨 [고도화 5] 에러 메시지 예쁘게 포장하기
