@@ -52,7 +52,7 @@ st.write("💡 **자주 묻는 질문(FAQ)**")
 col1, col2, col3 = st.columns(3)
 faq_clicked = None
 if col1.button("병가 규정 알려줘"): faq_clicked = "병가 관련 규정을 요약해줘."
-if col2.button("200만원 이상의 연구반회의 전결"): faq_clicked = "연구반 회의의 200만원 이상일때 전결권자는 어떻게 돼?"
+if col2.button("200만원 이상의 연구반회의 전결"): faq_clicked = "연구반 회의 지출이 200만원 이상일때 전결권자는 어떻게 돼?"
 if col3.button("💳 출장비/식대 한도"): faq_clicked = "출장 시 식대와 숙박비 한도를 알려줘."
 
 # 💬 기존 채팅 기록을 화면에 띄워주기
