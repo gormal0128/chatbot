@@ -105,17 +105,22 @@ if prompt:
                 final_prompt = prompt_template.format(history=history_text, context=context_text, question=prompt)
                 ai_message = llm.invoke(final_prompt)
                 
-                # 4. [고도화 4] 답변 출처 표기
-                final_answer = ai_message.content
-                final_answer += "\n\n---\n**🔍 참고한 규정 원문**\n"
+                # 4. 답변과 출처 분리해서 출력하기
                 
-                # 🛠️ [수정 포인트 4] 청소된 텍스트(clean_docs_content)를 화면에 뿌려줍니다.
+                # 먼저 LLM의 답변만 화면에 뿌려줍니다 (만약 스트리밍을 원하시면 st.write_stream 사용)
+                message_placeholder.markdown(ai_message.content) 
+                
+                # 출처 텍스트를 따로 조립합니다
+                source_text = "\n\n---\n**🔍 참고한 규정 원문**\n"
                 for text in clean_docs_content:
                     snippet = text[:150] 
-                    final_answer += f"> *...{snippet}...*\n\n"
+                    source_text += f"> *...{snippet}...*\n\n"
 
-                message_placeholder.markdown(final_answer)
-                response = final_answer
+                # 조립된 출처는 스트리밍이 아닌 일반 마크다운으로 '한 번에' 화면에 덧붙입니다.
+                st.markdown(source_text)
+                
+                # 세션에 저장할 최종 기록은 둘을 합쳐서 저장합니다.
+                response = ai_message.content + source_text
 
             except Exception as e:
                 # 🚨 [고도화 5] 에러 메시지 예쁘게 포장하기
