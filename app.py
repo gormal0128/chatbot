@@ -101,17 +101,23 @@ if prompt:
                 # 2. [고도화 3] 이전 대화 기록 묶기
                 history_text = "\n".join([f"{m['role']}: {m['content']}" for m in st.session_state.messages[-5:-1]])
                 
-                # 3. LLM에게 질문 던지기 (이제 LLM도 깔끔한 텍스트를 읽습니다)
+                # 3. LLM에게 질문 던지기
                 final_prompt = prompt_template.format(history=history_text, context=context_text, question=prompt)
                 ai_message = llm.invoke(final_prompt)
                 
-                # 4. 답변과 출처 분리해서 출력하기
+                llm_text = ""
+                if isinstance(ai_message.content, list):
+                    for item in ai_message.content:
+                        if isinstance(item, dict) and 'text' in item:
+                            llm_text += item['text']
+                        elif isinstance(item, str):
+                            llm_text += item
+                else:
+                    llm_text = str(ai_message.content) # 문자열이면 그대로 사용
                 
-                # 먼저 LLM의 답변만 화면에 뿌려줍니다 (만약 스트리밍을 원하시면 st.write_stream 사용)
-                message_placeholder.markdown(ai_message.content) 
-                
-                # 출처 텍스트를 따로 조립합니다
-                source_text = "\n\n---\n**🔍 참고한 규정 원문**\n"
+                # 4. [고도화 4] 답변 출처 표기 (이제 llm_text는 100% 안전한 문자열입니다)
+                final_answer = llm_text
+                final_answer += "\n\n---\n**🔍 참고한 규정 원문**\n"
                 for text in clean_docs_content:
                     snippet = text[:150] 
                     source_text += f"> *...{snippet}...*\n\n"
