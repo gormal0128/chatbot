@@ -16,8 +16,8 @@ os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 
 # 🎨 1. 웹페이지 기본 설정
 st.set_page_config(page_title="사내 규정 챗봇", page_icon="🤖", layout="wide")
-st.title("🤖 사내 규정 & 지침 챗봇")
-st.caption("궁금한 회사 규정을 물어보세요! 이전 대화도 기억합니다. 🧠")
+st.title("RAPA 지침 챗봇 (v0.1 테스트)")
+st.caption("궁금한 회사 지침을 물어보세요!")
 
 # 🧠 2. 챗봇 뇌(DB) 및 LLM 불러오기
 @st.cache_resource
@@ -53,7 +53,7 @@ col1, col2, col3 = st.columns(3)
 faq_clicked = None
 if col1.button("병가 규정 알려줘"): faq_clicked = "병가 관련 규정을 요약해줘."
 if col2.button("200만원 이상의 연구반회의 전결"): faq_clicked = "연구반 회의 지출이 200만원 이상일때 전결권자는 어떻게 돼?"
-if col3.button("💳 출장비/식대 한도"): faq_clicked = "출장 시 식대와 숙박비 한도를 알려줘."
+if col3.button("출장비/식대 한도"): faq_clicked = "출장 시 식대와 숙박비 한도를 알려줘."
 
 # 💬 기존 채팅 기록을 화면에 띄워주기
 for message in st.session_state.messages:
