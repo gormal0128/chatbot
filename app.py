@@ -47,22 +47,6 @@ if "messages" not in st.session_state:
 if "stats" not in st.session_state:
     st.session_state.stats = {} 
 
-# 📊 [고도화 1] 관리자용 통계 대시보드 (사이드바)
-with st.sidebar:
-    st.header("📈 관리자 통계")
-    st.caption("오늘 직원들이 많이 찾은 규정")
-    if st.session_state.stats:
-        sorted_stats = sorted(st.session_state.stats.items(), key=lambda x: x[1], reverse=True)
-        for q, count in sorted_stats:
-            st.write(f"- {q} ({count}회)")
-    else:
-        st.write("아직 질문 기록이 없습니다.")
-    
-    st.divider()
-    if st.button("🗑️ 대화 기록 초기화"):
-        st.session_state.messages = []
-        st.rerun()
-
 # 🔘 [고도화 2] 자주 묻는 질문(FAQ) 퀵 버튼
 st.write("💡 **자주 묻는 질문(FAQ)**")
 col1, col2, col3 = st.columns(3)
@@ -77,7 +61,7 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # ⌨️ 4. 사용자 질문 입력 및 답변 생성
-user_input = st.chat_input("규정에 대해 질문해 보세요...")
+user_input = st.chat_input("지침 중 궁금한 내용을 질문해 보세요...")
 prompt = faq_clicked if faq_clicked else user_input
 
 if prompt:
@@ -89,7 +73,7 @@ if prompt:
 
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
-        with st.spinner("규정집을 꼼꼼히 확인하는 중... 📖"):
+        with st.spinner("지침을 확인하고 있습니다. 잠시만 기다려 주세요..."):
             try:
                 # 1. DB에서 관련 문서 찾아오기
                 docs = retriever.invoke(prompt)
