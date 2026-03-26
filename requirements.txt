@@ -5,3 +5,5 @@ langchain-text-splitters
 langchain-google-genai
 chromadb
 pydantic
+gspread
+google-auth
