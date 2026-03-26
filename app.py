@@ -133,4 +133,5 @@ if prompt:
                     for item in ai_message.content:
                         if isinstance(item, dict) and 'text' in item:
                             llm_text += item['text']
-                        elif isinstance
+                        elif isinstance(item, str):
+                            llm_text += item
