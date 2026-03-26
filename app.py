@@ -133,5 +133,7 @@ if prompt:
                     for item in ai_message.content:
                         if isinstance(item, dict) and 'text' in item:
                             llm_text += item['text']
-                        elif isinstance(item, str):
+                        elif isinstance(item, str):   # <--- 여기가 제대로 들어갔는지 확인!
                             llm_text += item
+                else:
+                    llm_text = str(ai_message.content) # 문자열이면 그대로 사용
