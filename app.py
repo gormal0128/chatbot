@@ -1,48 +1,31 @@
 import streamlit as st
 import os
-import re  # 🛠️ [수정 포인트 1] 정규표현식 라이브러리 추가
-import datetime # 📊 시간 기록용
-import gspread  # 📊 구글 시트 조작용
-from google.oauth2.service_account import Credentials # 🔐 구글 인증용
+import re
+import datetime
+import gspread
+from google.oauth2.service_account import Credentials
 from langchain_community.vectorstores import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 
-# 🛠️ [수정 포인트 2] HWP 표 텍스트 공백 청소기 함수 추가
+# 🛠️ HWP 표 텍스트 공백 청소기 함수
 def clean_hwp_text(text):
-    # 연속된 공백(스페이스, 탭, 줄바꿈 등)을 단 하나의 스페이스로 압축합니다.
-    # 이렇게 하면 HWP 표에서 발생한 넓은 자간이 어느 정도 정상화됩니다.
     return re.sub(r'\s+', ' ', text).strip()
 
-# ==========================================
 # 📊 [고도화 6] 구글 시트 실시간 로깅 함수
-# ==========================================
 def log_to_sheet(question, answer):
     try:
-        # 1. Streamlit Secrets에서 로봇 직원 신분증(JSON) 가져오기
         credentials_dict = dict(st.secrets["gcp_service_account"])
-        
-        # 2. 구글 시트 및 드라이브 접근 권한 설정
         scopes = [
             "https://www.googleapis.com/auth/spreadsheets",
             "https://www.googleapis.com/auth/drive"
         ]
-        
-        # 3. 로봇 직원 로그인
         creds = Credentials.from_service_account_info(credentials_dict, scopes=scopes)
         client = gspread.authorize(creds)
-        
-        # 4. 엑셀 파일 열기 (⚠️ 주의: 구글 시트 파일 이름이 완벽하게 일치해야 합니다!)
         sheet = client.open("사내챗봇 QnA 로그").sheet1
-        
-        # 5. 현재 시간 기록 (한국 시간 기준)
         now = (datetime.datetime.utcnow() + datetime.timedelta(hours=9)).strftime("%Y-%m-%d %H:%M:%S")
-        
-        # 6. 맨 아래 빈 줄에 [시간, 질문, 답변] 쏙 집어넣기
         sheet.append_row([now, question, answer])
-        
     except Exception as e:
-        # 로그 저장에 실패해도 챗봇은 정상 작동하도록 에러를 화면에 띄우지 않습니다.
         print(f"로그 저장 실패: {e}") 
 
 # 🔑 API 키 세팅 (비밀 금고에서 가져오기)
@@ -112,28 +95,52 @@ if prompt:
                 # 1. DB에서 관련 문서 찾아오기
                 docs = retriever.invoke(prompt)
                 
-                # 🧹 [공백 청소기 작동] 검색된 문서의 더러운 공백 압축
+                # 🧹 공백 청소기 작동
                 clean_docs_content = [clean_hwp_text(doc.page_content) for doc in docs]
                 context_text = "\n\n".join(clean_docs_content)
                 
-                # 2. [고도화 3] 이전 대화 기록 묶기
+                # 2. 이전 대화 기록 묶기
                 history_text = "\n".join([f"{m['role']}: {m['content']}" for m in st.session_state.messages[-5:-1]])
                 
                 # 3. LLM에게 질문 던지기
                 final_prompt = prompt_template.format(history=history_text, context=context_text, question=prompt)
                 ai_message = llm.invoke(final_prompt)
                 
-                # ==========================================
-                # 🛡️ [철벽 방어] 모든 에러를 막아내는 최종 출력 로직
-                # ==========================================
-                
-                # (1) 리스트 에러 방어: Gemini 답변에서 순수 '텍스트'만 안전하게 추출
+                # 🛡️ 리스트 에러 방어 로직
                 llm_text = ""
                 if isinstance(ai_message.content, list):
                     for item in ai_message.content:
                         if isinstance(item, dict) and 'text' in item:
                             llm_text += item['text']
-                        elif isinstance(item, str):   # <--- 여기가 제대로 들어갔는지 확인!
+                        elif isinstance(item, str):
                             llm_text += item
                 else:
-                    llm_text = str(ai_message.content) # 문자열이면 그대로 사용
+                    llm_text = str(ai_message.content)
+                
+                # 🔍 출처 텍스트 조립
+                source_text = "\n\n---\n**🔍 참고한 규정 원문**\n"
+                for text in clean_docs_content:
+                    snippet = text[:150] 
+                    source_text += f"> *...{snippet}...*\n\n"
+                
+                # 화면 출력
+                final_answer = llm_text + source_text
+                message_placeholder.markdown(final_answer)
+                
+                response = final_answer
+
+            except Exception as e:
+                # 🚨 에러 메시지 처리
+                error_msg = str(e).lower()
+                if "429" in error_msg or "resource_exhausted" in error_msg or "quota" in error_msg:
+                    response = "🚨 **하루 사용량이 모두 소요되었습니다.** (무료 할당량 초과)\n\n죄송합니다. 오늘은 챗봇이 너무 많은 질문을 받아 지쳤습니다. 내일 다시 이용해 주시거나, 관리자에게 문의해 주세요!"
+                else:
+                    response = f"🚨 시스템 오류가 발생했습니다. 잠시 후 다시 시도해 주세요. (에러: {e})"
+                
+                message_placeholder.error(response)
+    
+    # 💾 화면 채팅 기록에 저장
+    st.session_state.messages.append({"role": "assistant", "content": response})
+    
+    # 📊 구글 시트 전송
+    log_to_sheet(prompt, response)
